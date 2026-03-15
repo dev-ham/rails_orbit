@@ -1,0 +1,17 @@
+<nav class="orbit-nav">
+  <div class="orbit-nav__inner">
+    <div class="orbit-nav__brand">
+      <svg class="orbit-nav__logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/>
+      </svg>
+      <span class="orbit-nav__title"><%= RailsOrbit.configuration.dashboard_title %></span>
+    </div>
+    <div class="orbit-nav__links">
+      <%= link_to "Overview", rails_orbit.root_path, class: "orbit-nav__link #{'orbit-nav__link--active' if current_page?(rails_orbit.root_path)}" %>
+      <%= link_to "Jobs", rails_orbit.jobs_path, class: "orbit-nav__link #{'orbit-nav__link--active' if current_page?(rails_orbit.jobs_path)}" %>
+      <%= link_to "Cache", rails_orbit.cache_path, class: "orbit-nav__link #{'orbit-nav__link--active' if current_page?(rails_orbit.cache_path)}" %>
+      <%= link_to "Errors", rails_orbit.errors_path, class: "orbit-nav__link #{'orbit-nav__link--active' if current_page?(rails_orbit.errors_path)}" %>
+    </div>
+  </div>
+</nav>

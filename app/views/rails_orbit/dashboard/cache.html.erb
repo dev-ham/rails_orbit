@@ -1,0 +1,25 @@
+<div class="orbit-page">
+  <h1 class="orbit-page__title">Cache</h1>
+
+  <div class="orbit-grid orbit-grid--3">
+    <div class="orbit-card">
+      <div class="orbit-card__label">Total Reads (24h)</div>
+      <div class="orbit-card__value"><%= @reads %></div>
+    </div>
+
+    <div class="orbit-card">
+      <div class="orbit-card__label">Hit Rate (24h)</div>
+      <div class="orbit-card__value"><%= @hit_rate %>%</div>
+    </div>
+
+    <div class="orbit-card">
+      <div class="orbit-card__label">Writes (24h)</div>
+      <div class="orbit-card__value"><%= @writes %></div>
+    </div>
+  </div>
+
+  <div class="orbit-card orbit-card--wide">
+    <div class="orbit-card__label">Deletes (24h)</div>
+    <div class="orbit-card__value"><%= @deletes %></div>
+  </div>
+</div>

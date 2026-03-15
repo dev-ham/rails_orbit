@@ -1,0 +1,11 @@
+<%= turbo_stream.update "orbit-queue-stats" do %>
+  <%= render "rails_orbit/stream/queue_stats", data: @queue_data %>
+<% end %>
+
+<%= turbo_stream.update "orbit-cache-stats" do %>
+  <%= render "rails_orbit/stream/cache_stats", data: @cache_data %>
+<% end %>
+
+<%= turbo_stream.update "orbit-error-count" do %>
+  <%= render "rails_orbit/stream/error_count", count: @error_count %>
+<% end %>

@@ -1,0 +1,35 @@
+<div class="orbit-page">
+  <h1 class="orbit-page__title">Jobs</h1>
+
+  <% if @by_queue.any? %>
+    <div class="orbit-table-wrap">
+      <table class="orbit-table">
+        <thead>
+          <tr>
+            <th>Queue</th>
+            <th>Enqueued</th>
+            <th>Avg Duration (ms)</th>
+            <th>Failed</th>
+            <th>Retried</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+            queues = @by_queue.keys.map(&:first).uniq.compact
+            queues.each do |queue|
+          %>
+            <tr>
+              <td class="orbit-table__queue"><%= queue || "default" %></td>
+              <td><%= @by_queue[[queue, "solid_queue.enqueued"]]&.to_i || 0 %></td>
+              <td><%= @by_queue[[queue, "solid_queue.performed_ms"]]&.round(1) || 0 %></td>
+              <td class="orbit-table__danger"><%= @by_queue[[queue, "solid_queue.failed"]]&.to_i || 0 %></td>
+              <td><%= @by_queue[[queue, "solid_queue.retried"]]&.to_i || 0 %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="orbit-empty">No job metrics recorded in the last 24 hours.</div>
+  <% end %>
+</div>

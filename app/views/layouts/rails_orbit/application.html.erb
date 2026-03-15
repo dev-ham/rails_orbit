@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= RailsOrbit.configuration.dashboard_title %></title>
+    <%= stylesheet_link_tag "/assets/rails_orbit/application.css", media: "all" %>
+    <%= javascript_include_tag "/assets/rails_orbit/application.js", defer: true %>
+    <%= csrf_meta_tags %>
+  </head>
+  <body class="orbit-body">
+    <%= render "rails_orbit/shared/nav" %>
+    <main class="orbit-main">
+      <% if flash[:warning] %>
+        <div class="orbit-flash orbit-flash--warning"><%= flash[:warning] %></div>
+      <% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

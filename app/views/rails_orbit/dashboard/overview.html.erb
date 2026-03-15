@@ -1,0 +1,43 @@
+<div class="orbit-page" data-controller="orbit-poll" data-orbit-poll-url-value="<%= rails_orbit.stream_path %>" data-orbit-poll-interval-value="<%= RailsOrbit.configuration.poll_interval * 1000 %>">
+  <h1 class="orbit-page__title">Overview</h1>
+
+  <div class="orbit-grid orbit-grid--4">
+    <div class="orbit-card">
+      <div class="orbit-card__label">Jobs Enqueued (24h)</div>
+      <div class="orbit-card__value" id="orbit-queue-stats">
+        <%= render "rails_orbit/stream/queue_stats", data: { enqueued: @enqueued_count, failed: @failed_jobs_count, retried: 0, avg_ms: 0 } %>
+      </div>
+    </div>
+
+    <div class="orbit-card">
+      <div class="orbit-card__label">Failed Jobs (24h)</div>
+      <div class="orbit-card__value orbit-card__value--danger"><%= @failed_jobs_count %></div>
+    </div>
+
+    <div class="orbit-card">
+      <div class="orbit-card__label">Cache Hit Rate (1h)</div>
+      <div class="orbit-card__value" id="orbit-cache-stats">
+        <%= render "rails_orbit/stream/cache_stats", data: { reads: 0, writes: @cache_writes, hit_rate: @cache_hit_rate } %>
+      </div>
+    </div>
+
+    <div class="orbit-card">
+      <div class="orbit-card__label">Errors (24h)</div>
+      <div class="orbit-card__value orbit-card__value--danger" id="orbit-error-count">
+        <%= render "rails_orbit/stream/error_count", count: @error_count %>
+      </div>
+    </div>
+  </div>
+
+  <% if @queue_throughput.any? %>
+    <div class="orbit-card orbit-card--wide">
+      <div class="orbit-card__label">Job Duration (last 60 min)</div>
+      <div class="orbit-sparkline">
+        <% max_val = @queue_throughput.map(&:last).max || 1 %>
+        <% @queue_throughput.last(60).each do |_at, val| %>
+          <div class="orbit-sparkline__bar" style="height: <%= [(val / max_val * 100), 2].max %>%"></div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

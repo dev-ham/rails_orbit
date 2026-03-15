@@ -1,0 +1,34 @@
+<div class="orbit-page">
+  <h1 class="orbit-page__title">Errors</h1>
+
+  <% if @errors.respond_to?(:any?) && @errors.any? %>
+    <div class="orbit-table-wrap">
+      <table class="orbit-table">
+        <thead>
+          <tr>
+            <th>Exception</th>
+            <th>Message</th>
+            <th>Occurred At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @errors.each do |error| %>
+            <tr>
+              <td class="orbit-table__danger"><%= error.exception_class %></td>
+              <td><%= truncate(error.message, length: 120) %></td>
+              <td><%= error.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="orbit-empty">
+      <% if flash[:warning] %>
+        <%= flash[:warning] %>
+      <% else %>
+        No errors recorded.
+      <% end %>
+    </div>
+  <% end %>
+</div>
