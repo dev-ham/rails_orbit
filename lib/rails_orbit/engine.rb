@@ -33,6 +33,17 @@ module RailsOrbit
       end
     end
 
+    initializer "rails_orbit.kamal_poller", after: "rails_orbit.instrumentation" do
+      ActiveSupport.on_load(:after_initialize) do
+        if RailsOrbit.configuration.kamal_enabled
+          require "rails_orbit/kamal/config_reader"
+          require "rails_orbit/kamal/stats_collector"
+          require "rails_orbit/kamal/poller"
+          RailsOrbit::Kamal::Poller.start!
+        end
+      end
+    end
+
     initializer "rails_orbit.shutdown_hook" do
       at_exit { RailsOrbit::MetricWriter.shutdown if defined?(RailsOrbit::MetricWriter) }
     end
