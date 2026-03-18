@@ -1,1 +1,1 @@
-<%= count %>
+<span class="orbit-stat <%= count.zero? ? 'orbit-stat--success' : (count < 10 ? 'orbit-stat--warning' : 'orbit-stat--danger') %>"><%= count %></span>

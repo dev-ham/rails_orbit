@@ -4,32 +4,29 @@
 [![Gem Version](https://badge.fury.io/rb/rails_orbit.svg)](https://badge.fury.io/rb/rails_orbit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A mountable Rails engine providing a real-time observability dashboard for applications using the Solid trifecta (`solid_queue`, `solid_cache`, `solid_errors`) and optionally Kamal-managed infrastructure health.
+A mountable Rails engine that gives you an observability dashboard for applications running the Solid stack — `solid_queue`, `solid_cache`, and `solid_errors`. Mount it, and you get real-time metrics without external services.
 
-## Features
+## Why rails_orbit
 
-- **Multi-adapter storage** — SQLite (default), host database, or external database URL
-- **Non-blocking instrumentation** — background metric writes via `concurrent-ruby`
-- **Hotwire dashboard** — real-time updates with Turbo Streams
-- **Kamal integration** — optional SSH-based container stats polling
-- **Self-contained UI** — pre-compiled CSS/JS, no host app asset pipeline dependency
-- **Configurable authentication** — HTTP Basic, Devise, or custom logic
+Rails 8 ships with Solid Queue, Solid Cache, and Solid Errors. They work great, but there is no single place to see how they are performing. rails_orbit fills that gap:
+
+- One `/orbit` route gives you jobs, cache, and error metrics in a single dashboard.
+- Zero external dependencies — no Redis, no Datadog, no Prometheus.
+- Non-blocking writes using `concurrent-ruby` so your app stays fast.
+- Works with SQLite, Postgres, MySQL, or any database URL.
 
 ## Requirements
 
 - Ruby >= 3.1
-- Rails >= 7.1, < 9
+- Rails >= 7.1
 - At least one of: `solid_queue`, `solid_cache`, `solid_errors`
 
-## Installation
-
-Add to your Gemfile:
+## Quick Start
 
 ```ruby
+# Gemfile
 gem "rails_orbit"
 ```
-
-Run the install generator:
 
 ```bash
 bundle install
@@ -37,24 +34,65 @@ bin/rails generate rails_orbit:install
 bin/rails db:migrate
 ```
 
-Set environment variables for dashboard authentication:
+Set credentials for the dashboard:
 
 ```bash
 export ORBIT_USER=admin
 export ORBIT_PASSWORD=secret
 ```
 
-Visit `/orbit` in your browser.
+Visit `/orbit` in your browser. That is it.
+
+## Dashboard
+
+The dashboard has four pages, all with a dark theme and live updates via Turbo Streams.
+
+### Overview
+
+The main page shows your application health at a glance:
+
+- **Jobs (24h)** — enqueued, failed, retried, and discarded counts with hourly trend arrows
+- **Cache (1h)** — hit rate with a visual bar, plus hits, misses, and write counts
+- **Errors (24h)** — total error count with severity coloring
+- **Job Duration chart** — an SVG area chart showing the last 60 minutes of processing times with min/max/current labels
+- **Live refresh** — a "last updated" indicator shows when data was last fetched
+
+Each card has a colored left border that shifts from green to amber to red based on thresholds.
+
+### Jobs
+
+A detailed per-queue breakdown:
+
+- Summary cards at the top — total enqueued, average duration, failed, discarded
+- A table showing each queue with columns for enqueued, avg duration, failed, retried, and discarded
+- Rows with failures get a subtle red background so they stand out
+
+### Cache
+
+Full cache performance visibility:
+
+- Total reads split into hits and misses (not just a combined number)
+- A visual hit-rate bar — green fill represents the hit percentage
+- Write, delete, and fetch-hit counts
+- Miss rate shown separately so you can spot cache warming issues
+
+### Errors
+
+Exceptions grouped by class for faster triage:
+
+- Each exception class shows occurrence count and "last seen" time
+- Up to 5 recent messages displayed per group
+- Resolved status shown if solid_errors supports it
 
 ## Storage Adapters
 
-| Adapter | Config Value | When to Use |
-|---------|-------------|-------------|
+| Adapter | Config | When to Use |
+|---------|--------|-------------|
 | SQLite (default) | `:sqlite` | Local dev, VPS, persistent volumes |
 | Host database | `:host_db` | Heroku, Railway, managed PaaS |
 | External URL | `:external` | PlanetScale, Neon, Turso |
 
-**Warning:** Using `:sqlite` on Heroku or Railway will lose data on every deploy/restart. The gem detects these platforms and prints a warning.
+Using `:sqlite` on platforms with ephemeral filesystems (Heroku, Railway) will lose data on deploy. The gem detects this and warns you.
 
 ```ruby
 RailsOrbit.configure do |config|
@@ -76,21 +114,21 @@ end
 ```ruby
 # config/initializers/rails_orbit.rb
 RailsOrbit.configure do |config|
-  config.storage_adapter  = :sqlite
-  config.retention_days   = 7
-  config.poll_interval    = 5          # seconds between Turbo Stream refreshes
-  config.dashboard_title  = "Orbit"
-  config.kamal_enabled    = false
+  config.storage_adapter  = :sqlite       # :sqlite, :host_db, or :external
+  config.retention_days   = 7             # auto-purge metrics older than this
+  config.poll_interval    = 5             # seconds between live updates
+  config.dashboard_title  = "Orbit"       # shown in nav and page title
+  config.kamal_enabled    = false         # enable Kamal container stats
 end
 ```
 
 ## Authentication
 
-Authentication is handled via a configurable block. Three common setups:
+The dashboard is protected by a configurable auth block. Three common patterns:
 
-### HTTP Basic Auth (default)
+### HTTP Basic (default)
 
-No configuration needed. Set `ORBIT_USER` and `ORBIT_PASSWORD` environment variables.
+Set `ORBIT_USER` and `ORBIT_PASSWORD` environment variables. No code changes needed.
 
 ### Devise
 
@@ -101,7 +139,7 @@ config.authenticate_with do |controller|
 end
 ```
 
-### Custom logic
+### Custom
 
 ```ruby
 config.authenticate_with do |controller|
@@ -111,20 +149,21 @@ config.authenticate_with do |controller|
 end
 ```
 
-## Dashboard
+## Instrumentation
 
-The dashboard is mounted at `/orbit` (configurable) and provides four views:
+rails_orbit automatically subscribes to these ActiveSupport notifications:
 
-- **Overview** — jobs enqueued, failed jobs, cache hit rate, error count, sparkline chart
-- **Jobs** — per-queue breakdown of enqueued, duration, failed, retried jobs
-- **Cache** — read count, hit rate, writes, deletes
-- **Errors** — recent errors from `solid_errors` (if installed)
+| Source | Events Captured |
+|--------|----------------|
+| solid_queue | enqueued, performed (with duration), failed, retried, discarded |
+| solid_cache | read hit, read miss, write, delete, fetch hit |
+| solid_errors | error recorded (with exception class) |
 
-Live updates are powered by Turbo Streams with automatic polling.
+All writes happen in a background thread. If the write queue is full, events are discarded rather than blocking your app.
 
 ## Data Retention
 
-Schedule the retention job with your preferred scheduler:
+Schedule the built-in retention job to keep your database lean:
 
 ```yaml
 # config/recurring.yml (solid_queue)
@@ -133,19 +172,16 @@ rails_orbit_retention:
   schedule: "0 2 * * *"
 ```
 
-This purges metrics older than `config.retention_days` (default: 7 days).
+This deletes metrics older than `retention_days` (default: 7).
 
 ## Kamal Integration
 
-Kamal infrastructure polling is disabled by default. To enable:
-
-1. Add `sshkit` to your Gemfile:
+Optional SSH-based container stats polling. Disabled by default.
 
 ```ruby
+# Gemfile
 gem "sshkit", "~> 1.21"
 ```
-
-2. Configure in your initializer:
 
 ```ruby
 RailsOrbit.configure do |config|
@@ -154,23 +190,14 @@ RailsOrbit.configure do |config|
 end
 ```
 
-The poller reads `config/deploy.yml` to discover servers and collects CPU/memory stats from running Docker containers every 30 seconds.
+Reads `config/deploy.yml` to discover servers. Collects CPU and memory stats from Docker containers every 30 seconds.
 
-**Security notes:**
-- SSH key path must be explicitly set — it is never auto-discovered
-- SSH keys must never be committed to the repository
-- Only enable Kamal polling in production environments
+**Security:**
+- SSH key path must be set explicitly — never auto-discovered
+- Never commit SSH keys to your repository
+- Only enable in production environments
 
 ## Contributing
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/my-feature`)
-3. Run tests: `bundle exec rspec`
-4. Commit your changes (`git commit -am 'Add my feature'`)
-5. Push to the branch (`git push origin feature/my-feature`)
-6. Create a Pull Request
-
-### Development Setup
 
 ```bash
 git clone https://github.com/dev-ham/rails_orbit.git
@@ -180,6 +207,12 @@ bundle exec rspec
 ```
 
 Tests run against a dummy Rails app in `spec/dummy/`.
+
+1. Fork the repo
+2. Create a branch (`git checkout -b feature/my-feature`)
+3. Run tests: `bundle exec rspec`
+4. Commit and push
+5. Open a Pull Request
 
 ## License
 

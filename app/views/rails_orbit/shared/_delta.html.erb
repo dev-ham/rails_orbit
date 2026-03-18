@@ -1,0 +1,13 @@
+<% if delta[:direction] == :up %>
+  <span class="orbit-delta orbit-delta--up" title="vs previous hour">
+    <svg class="orbit-delta__icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 2L10 7H2z"/></svg>
+    <%= delta[:value] %>%
+  </span>
+<% elsif delta[:direction] == :down %>
+  <span class="orbit-delta orbit-delta--down" title="vs previous hour">
+    <svg class="orbit-delta__icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 10L2 5h8z"/></svg>
+    <%= delta[:value] %>%
+  </span>
+<% else %>
+  <span class="orbit-delta orbit-delta--flat" title="vs previous hour">--</span>
+<% end %>

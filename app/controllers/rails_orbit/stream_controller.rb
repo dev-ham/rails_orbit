@@ -22,10 +22,10 @@ module RailsOrbit
 
     def queue_stats
       {
-        enqueued:  Metric.recent(1).for_key("solid_queue.enqueued").sum(:value).to_i,
-        failed:    Metric.recent(1).for_key("solid_queue.failed").sum(:value).to_i,
-        retried:   Metric.recent(1).for_key("solid_queue.retried").sum(:value).to_i,
-        avg_ms:    Metric.recent(1).for_key("solid_queue.performed_ms").average(:value)&.round(1) || 0,
+        enqueued: Metric.recent(1).for_key("solid_queue.enqueued").sum(:value).to_i,
+        failed:   Metric.recent(1).for_key("solid_queue.failed").sum(:value).to_i,
+        retried:  Metric.recent(1).for_key("solid_queue.retried").sum(:value).to_i,
+        avg_ms:   Metric.recent(1).for_key("solid_queue.performed_ms").average(:value)&.round(1) || 0,
       }
     end
 
@@ -34,7 +34,8 @@ module RailsOrbit
       misses = Metric.recent(1).for_key("solid_cache.read_miss").sum(:value).to_f
       total  = hits + misses
       {
-        reads:    total.to_i,
+        hits:     hits.to_i,
+        misses:   misses.to_i,
         writes:   Metric.recent(1).for_key("solid_cache.write").sum(:value).to_i,
         hit_rate: total.zero? ? 0.0 : ((hits / total) * 100).round(1),
       }

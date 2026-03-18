@@ -1,33 +1,50 @@
 <div class="orbit-page">
   <h1 class="orbit-page__title">Errors</h1>
 
-  <% if @errors.respond_to?(:any?) && @errors.any? %>
-    <div class="orbit-table-wrap">
-      <table class="orbit-table">
-        <thead>
-          <tr>
-            <th>Exception</th>
-            <th>Message</th>
-            <th>Occurred At</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @errors.each do |error| %>
-            <tr>
-              <td class="orbit-table__danger"><%= error.exception_class %></td>
-              <td><%= truncate(error.message, length: 120) %></td>
-              <td><%= error.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+  <% if @grouped_errors.any? %>
+    <% @grouped_errors.each do |group| %>
+      <div class="orbit-error-group">
+        <div class="orbit-error-group__header">
+          <div class="orbit-error-group__title">
+            <span class="orbit-error-group__class"><%= group[:exception_class] %></span>
+            <span class="orbit-error-group__badge"><%= group[:count] %>x</span>
+            <% if group[:resolved] %>
+              <span class="orbit-error-group__resolved">resolved</span>
+            <% end %>
+          </div>
+          <div class="orbit-error-group__meta">
+            Last seen <%= time_ago_in_words(group[:last_seen]) %> ago
+          </div>
+        </div>
+
+        <div class="orbit-table-wrap">
+          <table class="orbit-table orbit-table--compact">
+            <thead>
+              <tr>
+                <th>Message</th>
+                <th class="orbit-table__right">Occurred At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% group[:records].each do |error| %>
+                <tr>
+                  <td><%= truncate(error.message, length: 140) %></td>
+                  <td class="orbit-table__right orbit-table__mono"><%= error.created_at.strftime("%b %d %H:%M:%S") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
   <% else %>
     <div class="orbit-empty">
+      <svg class="orbit-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
       <% if flash[:warning] %>
-        <%= flash[:warning] %>
+        <p><%= flash[:warning] %></p>
       <% else %>
-        No errors recorded.
+        <p>No errors recorded.</p>
+        <p class="orbit-empty__hint">Exceptions will appear here once solid_errors captures them.</p>
       <% end %>
     </div>
   <% end %>

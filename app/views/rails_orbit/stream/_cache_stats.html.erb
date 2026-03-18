@@ -1,4 +1,9 @@
 <div class="orbit-stat-group">
-  <span class="orbit-stat"><%= data[:hit_rate] %>%</span>
-  <span class="orbit-stat orbit-stat--muted"><%= data[:writes] %> writes</span>
+  <span class="orbit-stat"><%= data[:hit_rate] %><span class="orbit-card__unit">%</span></span>
+  <span class="orbit-stat--label">hit rate</span>
+</div>
+<div class="orbit-stat-row">
+  <span class="orbit-stat-pill orbit-stat-pill--success"><%= data[:hits] %> hits</span>
+  <span class="orbit-stat-pill orbit-stat-pill--danger"><%= data[:misses] %> misses</span>
+  <span class="orbit-stat-pill"><%= data[:writes] %> writes</span>
 </div>

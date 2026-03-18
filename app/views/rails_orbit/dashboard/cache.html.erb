@@ -2,24 +2,54 @@
   <h1 class="orbit-page__title">Cache</h1>
 
   <div class="orbit-grid orbit-grid--3">
-    <div class="orbit-card">
+    <div class="orbit-card orbit-card--compact">
       <div class="orbit-card__label">Total Reads (24h)</div>
       <div class="orbit-card__value"><%= @reads %></div>
+      <div class="orbit-card__footer">
+        <span class="orbit-card__detail orbit-card__detail--success"><%= @hits %> hits</span>
+        <span class="orbit-card__detail orbit-card__detail--danger"><%= @misses %> misses</span>
+      </div>
     </div>
 
-    <div class="orbit-card">
+    <div class="orbit-card orbit-card--compact">
       <div class="orbit-card__label">Hit Rate (24h)</div>
-      <div class="orbit-card__value"><%= @hit_rate %>%</div>
+      <div class="orbit-card__value"><%= @hit_rate %><span class="orbit-card__unit">%</span></div>
+      <div class="orbit-hit-bar" title="<%= @hit_rate %>% hit rate">
+        <div class="orbit-hit-bar__fill" style="width: <%= @hit_rate %>%"></div>
+      </div>
     </div>
 
-    <div class="orbit-card">
+    <div class="orbit-card orbit-card--compact">
       <div class="orbit-card__label">Writes (24h)</div>
       <div class="orbit-card__value"><%= @writes %></div>
     </div>
   </div>
 
-  <div class="orbit-card orbit-card--wide">
-    <div class="orbit-card__label">Deletes (24h)</div>
-    <div class="orbit-card__value"><%= @deletes %></div>
+  <div class="orbit-grid orbit-grid--3">
+    <div class="orbit-card orbit-card--compact">
+      <div class="orbit-card__label">Deletes (24h)</div>
+      <div class="orbit-card__value"><%= @deletes %></div>
+    </div>
+
+    <div class="orbit-card orbit-card--compact">
+      <div class="orbit-card__label">Fetch Hits (24h)</div>
+      <div class="orbit-card__value"><%= @fetch_hit %></div>
+      <div class="orbit-card__footer">
+        <span class="orbit-card__detail">Block-level cache hits</span>
+      </div>
+    </div>
+
+    <div class="orbit-card orbit-card--compact">
+      <div class="orbit-card__label">Miss Rate</div>
+      <div class="orbit-card__value <%= 'orbit-card__value--warning' if @reads > 0 && (100 - @hit_rate) > 30 %>"><%= @reads.zero? ? 0 : (100 - @hit_rate).round(1) %><span class="orbit-card__unit">%</span></div>
+    </div>
   </div>
+
+  <% if @reads.zero? && @writes.zero? %>
+    <div class="orbit-empty">
+      <svg class="orbit-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+      <p>No cache activity in the last 24 hours.</p>
+      <p class="orbit-empty__hint">Cache events will appear here once solid_cache processes read/write operations.</p>
+    </div>
+  <% end %>
 </div>
