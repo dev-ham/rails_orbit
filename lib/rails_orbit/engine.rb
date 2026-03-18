@@ -28,6 +28,19 @@ module RailsOrbit
       end
     end
 
+    initializer "rails_orbit.assets" do |app|
+      if app.config.respond_to?(:assets)
+        app.config.assets.precompile += %w[
+          rails_orbit/application.css
+          rails_orbit/application.js
+        ]
+      end
+    end
+
+    initializer "rails_orbit.static_assets" do |app|
+      app.middleware.insert_before(::ActionDispatch::Static, ::ActionDispatch::Static, root.join("public").to_s)
+    end
+
     initializer "rails_orbit.ephemeral_warning" do
       if RailsOrbit.configuration.storage_adapter == :sqlite
         db_path = Rails.root.join("db", "rails_orbit.sqlite3")

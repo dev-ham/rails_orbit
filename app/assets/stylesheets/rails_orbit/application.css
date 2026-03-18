@@ -1,0 +1,246 @@
+/* rails_orbit — self-contained dashboard styles */
+:root {
+  --orbit-bg:          #0a0a0f;
+  --orbit-surface:     #12121a;
+  --orbit-surface-2:   #1a1a26;
+  --orbit-border:      #2a2a3a;
+  --orbit-text:        #e4e4ec;
+  --orbit-text-muted:  #8888a0;
+  --orbit-primary:     #6366f1;
+  --orbit-primary-dim: #4f46e5;
+  --orbit-danger:      #ef4444;
+  --orbit-danger-dim:  #dc2626;
+  --orbit-success:     #22c55e;
+  --orbit-warning:     #f59e0b;
+  --orbit-radius:      0.5rem;
+  --orbit-radius-lg:   0.75rem;
+  --orbit-font:        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.orbit-body {
+  font-family: var(--orbit-font);
+  background: var(--orbit-bg);
+  color: var(--orbit-text);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+.orbit-nav {
+  background: var(--orbit-surface);
+  border-bottom: 1px solid var(--orbit-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.orbit-nav__inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  height: 3.5rem;
+  gap: 2rem;
+}
+.orbit-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.orbit-nav__logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--orbit-primary);
+}
+.orbit-nav__title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+.orbit-nav__links {
+  display: flex;
+  gap: 0.25rem;
+}
+.orbit-nav__link {
+  color: var(--orbit-text-muted);
+  text-decoration: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--orbit-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+.orbit-nav__link:hover {
+  color: var(--orbit-text);
+  background: var(--orbit-surface-2);
+}
+.orbit-nav__link--active {
+  color: var(--orbit-text);
+  background: var(--orbit-primary-dim);
+}
+
+/* ── Main ────────────────────────────────────────────────── */
+.orbit-main {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ── Page ────────────────────────────────────────────────── */
+.orbit-page__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+/* ── Grid ────────────────────────────────────────────────── */
+.orbit-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.orbit-grid--3 { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.orbit-grid--4 { grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+
+/* ── Card ────────────────────────────────────────────────── */
+.orbit-card {
+  background: var(--orbit-surface);
+  border: 1px solid var(--orbit-border);
+  border-radius: var(--orbit-radius-lg);
+  padding: 1.25rem;
+}
+.orbit-card--wide {
+  grid-column: 1 / -1;
+  background: var(--orbit-surface);
+  border: 1px solid var(--orbit-border);
+  border-radius: var(--orbit-radius-lg);
+  padding: 1.25rem;
+}
+.orbit-card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--orbit-text-muted);
+  margin-bottom: 0.5rem;
+}
+.orbit-card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.orbit-card__value--danger {
+  color: var(--orbit-danger);
+}
+
+/* ── Stats ───────────────────────────────────────────────── */
+.orbit-stat-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.orbit-stat {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.orbit-stat--muted {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--orbit-text-muted);
+}
+
+/* ── Sparkline ───────────────────────────────────────────── */
+.orbit-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 4rem;
+  padding-top: 0.5rem;
+}
+.orbit-sparkline__bar {
+  flex: 1;
+  background: var(--orbit-primary);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+/* ── Table ───────────────────────────────────────────────── */
+.orbit-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--orbit-border);
+  border-radius: var(--orbit-radius-lg);
+}
+.orbit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.orbit-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--orbit-text-muted);
+  background: var(--orbit-surface);
+  border-bottom: 1px solid var(--orbit-border);
+}
+.orbit-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--orbit-border);
+}
+.orbit-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.orbit-table tbody tr:hover {
+  background: var(--orbit-surface-2);
+}
+.orbit-table__queue {
+  font-weight: 600;
+  color: var(--orbit-primary);
+}
+.orbit-table__danger {
+  color: var(--orbit-danger);
+  font-weight: 600;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.orbit-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--orbit-text-muted);
+  font-size: 0.95rem;
+  background: var(--orbit-surface);
+  border: 1px solid var(--orbit-border);
+  border-radius: var(--orbit-radius-lg);
+}
+
+/* ── Flash ───────────────────────────────────────────────── */
+.orbit-flash {
+  padding: 0.75rem 1rem;
+  border-radius: var(--orbit-radius);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.orbit-flash--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--orbit-warning);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .orbit-nav__inner { padding: 0 1rem; }
+  .orbit-main { padding: 1rem; }
+  .orbit-grid--4 { grid-template-columns: repeat(2, 1fr); }
+  .orbit-card__value, .orbit-stat { font-size: 1.25rem; }
+}

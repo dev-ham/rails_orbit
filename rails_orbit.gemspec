@@ -12,12 +12,19 @@ Gem::Specification.new do |spec|
   spec.homepage    = "https://github.com/dev-ham/rails_orbit"
   spec.license     = "MIT"
 
+  spec.metadata = {
+    "homepage_uri"    => spec.homepage,
+    "source_code_uri" => "https://github.com/dev-ham/rails_orbit",
+    "changelog_uri"   => "https://github.com/dev-ham/rails_orbit/blob/main/CHANGELOG.md",
+    "bug_tracker_uri" => "https://github.com/dev-ham/rails_orbit/issues",
+  }
+
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.files = Dir[
-    "app/**/*", "config/**/*", "db/**/*",
+    "app/**/*", "config/**/*",
     "lib/**/*", "public/**/*",
-    "LICENSE.txt", "README.md"
+    "LICENSE.txt", "README.md", "CHANGELOG.md"
   ]
 
   spec.require_paths = ["lib"]

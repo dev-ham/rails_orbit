@@ -55,6 +55,22 @@ RSpec.describe RailsOrbit::DashboardController, type: :request do
     end
   end
 
+  describe "authentication" do
+    it "returns 401 when using default auth without credentials" do
+      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
+      get "/orbit"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 200 when providing valid credentials" do
+      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
+      get "/orbit", headers: {
+        "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("orbit", "changeme")
+      }
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
   describe "security headers" do
     it "sets X-Frame-Options to DENY" do
       get "/orbit"

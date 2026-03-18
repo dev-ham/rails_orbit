@@ -11,12 +11,12 @@ RailsOrbit.configure do |config|
   # ── Authentication ────────────────────────────────────────────────────────
   # Provide a block that will be called as a before_action on the dashboard.
   # Default: HTTP Basic Auth via ORBIT_USER / ORBIT_PASSWORD env vars.
-  config.authenticate_with do |controller|
-    controller.http_basic_authenticate_with(
-      name:     ENV.fetch("ORBIT_USER",     "orbit"),
-      password: ENV.fetch("ORBIT_PASSWORD", "changeme")
-    )
-  end
+  # config.authenticate_with do |controller|
+  #   controller.authenticate_or_request_with_http_basic("Orbit") do |name, password|
+  #     ActiveSupport::SecurityUtils.secure_compare(name, ENV.fetch("ORBIT_USER", "orbit")) &
+  #       ActiveSupport::SecurityUtils.secure_compare(password, ENV.fetch("ORBIT_PASSWORD", "changeme"))
+  #   end
+  # end
 
   # ── Data retention ────────────────────────────────────────────────────────
   config.retention_days = 7

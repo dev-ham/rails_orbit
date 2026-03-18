@@ -39,10 +39,10 @@ module RailsOrbit
 
     def default_auth_block
       ->(controller) {
-        controller.http_basic_authenticate_with(
-          name:     ENV.fetch("ORBIT_USER",     "orbit"),
-          password: ENV.fetch("ORBIT_PASSWORD", "changeme")
-        )
+        controller.authenticate_or_request_with_http_basic("Orbit") do |name, password|
+          ActiveSupport::SecurityUtils.secure_compare(name, ENV.fetch("ORBIT_USER", "orbit")) &
+            ActiveSupport::SecurityUtils.secure_compare(password, ENV.fetch("ORBIT_PASSWORD", "changeme"))
+        end
       }
     end
   end

@@ -55,6 +55,12 @@ RSpec.describe RailsOrbit::Configuration do
     it "has a default auth block" do
       expect(config.auth_block).to be_a(Proc)
     end
+
+    it "default auth block calls authenticate_or_request_with_http_basic" do
+      controller = double("controller")
+      expect(controller).to receive(:authenticate_or_request_with_http_basic).with("Orbit")
+      config.auth_block.call(controller)
+    end
   end
 
   describe "#poll_interval" do
