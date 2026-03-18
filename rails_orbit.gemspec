@@ -3,13 +3,13 @@ require_relative "lib/rails_orbit/version"
 Gem::Specification.new do |spec|
   spec.name        = "rails_orbit"
   spec.version     = RailsOrbit::VERSION
-  spec.authors     = ["Your Name"]
-  spec.email       = ["you@example.com"]
+  spec.authors     = ["dev-ham"]
+  spec.email       = ["devhammad.masood@gmail.com"]
   spec.summary     = "Observability dashboard for solid_queue, solid_cache, and solid_errors"
   spec.description = "A mountable Rails engine providing real-time metrics, " \
                      "job monitoring, cache analytics, and error tracking for " \
                      "applications built on the Solid trifecta."
-  spec.homepage    = "https://github.com/yourname/rails_orbit"
+  spec.homepage    = "https://github.com/dev-ham/rails_orbit"
   spec.license     = "MIT"
 
   spec.required_ruby_version = ">= 3.1.0"

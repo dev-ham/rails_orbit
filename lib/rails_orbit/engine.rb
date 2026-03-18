@@ -67,7 +67,7 @@ module RailsOrbit
           with an ephemeral filesystem (detected: #{platform}).
           The file at #{db_path} will be DESTROYED on every dyno restart or deploy.
           Switch to storage_adapter: :host_db or :external to persist metrics.
-          See https://github.com/yourname/rails_orbit#storage-adapters for details.
+          See https://github.com/dev-ham/rails_orbit#storage-adapters for details.
         WARN
         Rails.logger.warn(msg)
         warn(msg)
