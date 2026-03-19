@@ -113,6 +113,7 @@ module RailsOrbit
 
       conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_key_rec ON #{table} (key, recorded_at)" rescue nil
       conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_rec ON #{table} (recorded_at)" rescue nil
+      conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_cover ON #{table} (key, recorded_at, value)" rescue nil
 
       Rails.logger.info("[rails_orbit] Created #{table} table (adapter: #{adapter})")
     rescue => e

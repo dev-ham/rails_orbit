@@ -9,5 +9,6 @@ class CreateRailsOrbitMetrics < ActiveRecord::Migration[<%= ActiveRecord::Migrat
 
     add_index :rails_orbit_metrics, [:key, :recorded_at]
     add_index :rails_orbit_metrics, :recorded_at
+    add_index :rails_orbit_metrics, [:key, :recorded_at, :value], name: "idx_rails_orbit_metrics_cover"
   end
 end

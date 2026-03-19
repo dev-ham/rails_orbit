@@ -1,8 +1,15 @@
 <div class="orbit-page" data-controller="orbit-poll" data-orbit-poll-url-value="<%= rails_orbit.stream_path %>" data-orbit-poll-interval-value="<%= RailsOrbit.configuration.poll_interval * 1000 %>">
   <div class="orbit-page-header">
     <h1 class="orbit-page__title">Overview</h1>
-    <div class="orbit-updated" id="orbit-last-updated" data-time="<%= Time.current.iso8601 %>">
-      Updated just now
+    <div class="orbit-page-header__right">
+      <div class="orbit-range-picker">
+        <% RailsOrbit::DashboardController::RANGES.each do |key, cfg| %>
+          <%= link_to cfg[:label], rails_orbit.root_path(range: key), class: "orbit-range-picker__btn #{'orbit-range-picker__btn--active' if @range_key == key}" %>
+        <% end %>
+      </div>
+      <div class="orbit-updated" id="orbit-last-updated" data-time="<%= Time.current.iso8601 %>">
+        Updated just now
+      </div>
     </div>
   </div>
 
@@ -11,7 +18,7 @@
       <div class="orbit-card__header">
         <div class="orbit-card__label">
           <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-          Jobs (24h)
+          Jobs (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
         </div>
         <%= render "rails_orbit/shared/delta", delta: @enqueued_delta %>
       </div>
@@ -28,7 +35,7 @@
       <div class="orbit-card__header">
         <div class="orbit-card__label">
           <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
-          Cache (1h)
+          Cache (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
         </div>
         <%= render "rails_orbit/shared/delta", delta: @cache_delta %>
       </div>
@@ -46,7 +53,7 @@
       <div class="orbit-card__header">
         <div class="orbit-card__label">
           <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Errors (24h)
+          Errors (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
         </div>
         <%= render "rails_orbit/shared/delta", delta: @error_delta %>
       </div>
@@ -60,36 +67,26 @@
     </div>
   </div>
 
-  <% if @queue_throughput.any? %>
-    <div class="orbit-card orbit-card--wide">
-      <div class="orbit-card__label">Job Duration (last 60 min)</div>
-      <%
-        points = @queue_throughput.last(60)
-        max_val = points.map(&:last).max || 1
-        min_val = points.map(&:last).min || 0
-        current_val = points.last&.last || 0
-        width = 600
-        height = 80
-        step = points.size > 1 ? width.to_f / (points.size - 1) : width
-        coords = points.each_with_index.map { |(_at, val), i| "#{(i * step).round(1)},#{(height - (val / max_val * height)).round(1)}" }
-      %>
-      <div class="orbit-chart-wrap">
-        <svg class="orbit-chart" viewBox="0 0 <%= width %> <%= height + 20 %>" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="orbit-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--orbit-primary)" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="var(--orbit-primary)" stop-opacity="0.02"/>
-            </linearGradient>
-          </defs>
-          <polygon points="0,<%= height %> <%= coords.join(' ') %> <%= width %>,<%= height %>" fill="url(#orbit-grad)"/>
-          <polyline points="<%= coords.join(' ') %>" fill="none" stroke="var(--orbit-primary)" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-        <div class="orbit-chart__labels">
-          <span class="orbit-chart__label"><%= min_val.round(0) %>ms</span>
-          <span class="orbit-chart__label orbit-chart__label--current"><%= current_val.round(0) %>ms now</span>
-          <span class="orbit-chart__label"><%= max_val.round(0) %>ms peak</span>
-        </div>
+  <div class="orbit-grid orbit-grid--1">
+    <% if @job_chart.any? %>
+      <div class="orbit-card orbit-card--wide">
+        <div class="orbit-card__label">Job Duration (avg ms)</div>
+        <div class="orbit-chart-interactive" data-chart='<%= @job_chart.to_json %>' data-unit="ms" data-color="var(--orbit-primary)" data-gradient-id="orbit-grad-jobs"></div>
       </div>
-    </div>
-  <% end %>
+    <% end %>
+
+    <% if @cache_chart.any? %>
+      <div class="orbit-card orbit-card--wide">
+        <div class="orbit-card__label">Cache Hit Rate (%)</div>
+        <div class="orbit-chart-interactive" data-chart='<%= @cache_chart.to_json %>' data-unit="%" data-color="var(--orbit-success)" data-gradient-id="orbit-grad-cache"></div>
+      </div>
+    <% end %>
+
+    <% if @error_chart.any? %>
+      <div class="orbit-card orbit-card--wide">
+        <div class="orbit-card__label">Errors</div>
+        <div class="orbit-chart-interactive" data-chart='<%= @error_chart.to_json %>' data-unit="" data-color="var(--orbit-danger)" data-gradient-id="orbit-grad-errors"></div>
+      </div>
+    <% end %>
+  </div>
 </div>

@@ -1,9 +1,14 @@
 <div class="orbit-page">
-  <h1 class="orbit-page__title">Jobs</h1>
+  <div class="orbit-page-header">
+    <h1 class="orbit-page__title">Jobs</h1>
+    <%= render "rails_orbit/shared/range_picker" %>
+  </div>
+
+  <% range_label = RailsOrbit::DashboardController::RANGES[@range_key][:label] %>
 
   <div class="orbit-grid orbit-grid--4">
     <div class="orbit-card orbit-card--compact">
-      <div class="orbit-card__label">Enqueued (24h)</div>
+      <div class="orbit-card__label">Enqueued (<%= range_label %>)</div>
       <div class="orbit-card__value"><%= @total_enqueued %></div>
     </div>
     <div class="orbit-card orbit-card--compact">
@@ -54,7 +59,7 @@
   <% else %>
     <div class="orbit-empty">
       <svg class="orbit-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 10h0"/><path d="M12 10h0"/><path d="M17 10h0"/></svg>
-      <p>No job metrics recorded in the last 24 hours.</p>
+      <p>No job metrics recorded in the selected time range.</p>
       <p class="orbit-empty__hint">Jobs will appear here once solid_queue starts processing work.</p>
     </div>
   <% end %>

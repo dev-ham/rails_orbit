@@ -52,6 +52,7 @@ namespace :rails_orbit do
 
     conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_key_rec ON #{table} (key, recorded_at)"
     conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_rec ON #{table} (recorded_at)"
+    conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_cover ON #{table} (key, recorded_at, value)"
 
     puts "[rails_orbit] Created '#{table}' table with indexes."
   end

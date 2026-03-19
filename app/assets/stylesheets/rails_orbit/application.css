@@ -272,12 +272,50 @@
 .orbit-stat-pill--danger  { color: var(--orbit-danger); background: var(--orbit-danger-dim); }
 .orbit-stat-pill--success { color: var(--orbit-success); background: var(--orbit-success-dim); }
 
+/* ── Range Picker ────────────────────────────────────────── */
+.orbit-range-picker {
+  display: flex;
+  gap: 0.125rem;
+  background: var(--orbit-surface-2);
+  padding: 0.2rem;
+  border-radius: var(--orbit-radius);
+}
+.orbit-range-picker__btn {
+  color: var(--orbit-text-muted);
+  text-decoration: none;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  font-variant-numeric: tabular-nums;
+}
+.orbit-range-picker__btn:hover {
+  color: var(--orbit-text);
+  background: var(--orbit-surface-3);
+}
+.orbit-range-picker__btn--active {
+  color: var(--orbit-text);
+  background: var(--orbit-primary-dim);
+}
+.orbit-range-picker__btn:focus-visible {
+  outline: 2px solid var(--orbit-primary);
+  outline-offset: 1px;
+}
+.orbit-page-header__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* ── SVG Chart ───────────────────────────────────────────── */
 .orbit-chart-wrap { position: relative; }
 .orbit-chart {
   width: 100%;
-  height: 5rem;
+  height: 5.5rem;
   display: block;
+  cursor: crosshair;
 }
 .orbit-chart__labels {
   display: flex;
@@ -294,6 +332,29 @@
   color: var(--orbit-primary);
   font-weight: 600;
 }
+.orbit-chart__dot {
+  pointer-events: none;
+  transition: cx 0.05s, cy 0.05s;
+}
+.orbit-chart__vline { pointer-events: none; }
+.orbit-chart__hitzone rect { cursor: crosshair; }
+.orbit-chart__tooltip {
+  position: absolute;
+  top: -0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: var(--orbit-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--orbit-text);
+  background: var(--orbit-surface-3);
+  border: 1px solid var(--orbit-border);
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+.orbit-grid--1 { grid-template-columns: 1fr; }
 
 /* ── Hit rate bar ────────────────────────────────────────── */
 .orbit-hit-bar {
@@ -469,6 +530,7 @@ a:focus-visible, button:focus-visible {
   .orbit-main { padding: 1rem; }
   .orbit-grid--4 { grid-template-columns: 1fr; }
   .orbit-card__value, .orbit-stat { font-size: 1.125rem; }
-  .orbit-page-header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .orbit-page-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .orbit-page-header__right { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
   .orbit-error-group__header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
 }

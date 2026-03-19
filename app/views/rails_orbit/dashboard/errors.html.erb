@@ -1,5 +1,8 @@
 <div class="orbit-page">
-  <h1 class="orbit-page__title">Errors</h1>
+  <div class="orbit-page-header">
+    <h1 class="orbit-page__title">Errors</h1>
+    <%= render "rails_orbit/shared/range_picker" %>
+  </div>
 
   <% if @grouped_errors.any? %>
     <% @grouped_errors.each do |group| %>
@@ -43,7 +46,7 @@
       <% if flash[:warning] %>
         <p><%= flash[:warning] %></p>
       <% else %>
-        <p>No errors recorded.</p>
+        <p>No errors recorded in the selected time range.</p>
         <p class="orbit-empty__hint">Exceptions will appear here once solid_errors captures them.</p>
       <% end %>
     </div>

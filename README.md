@@ -63,17 +63,21 @@ bin/rails rails_orbit:status  # show config, adapter, table status, metric count
 
 The dashboard has four pages, all with a dark theme and live updates via Turbo Streams.
 
+Every page includes a **date range picker** — choose from 1h, 6h, 24h (default), 7d, or 30d to view historical data.
+
 ### Overview
 
 The main page shows your application health at a glance:
 
-- **Jobs (24h)** — enqueued, failed, retried, and discarded counts with hourly trend arrows
-- **Cache (1h)** — hit rate with a visual bar, plus hits, misses, and write counts
-- **Errors (24h)** — total error count with severity coloring
-- **Job Duration chart** — an SVG area chart showing the last 60 minutes of processing times with min/max/current labels
+- **Jobs** — enqueued, failed, retried, and discarded counts with hourly trend arrows
+- **Cache** — hit rate with a visual bar, plus hits, misses, and write counts
+- **Errors** — total error count with severity coloring
+- **Interactive charts** — three SVG area charts for Job Duration, Cache Hit Rate, and Error Count. Hover over any point to see the exact value and timestamp.
 - **Live refresh** — a "last updated" indicator shows when data was last fetched
 
 Each card has a colored left border that shifts from green to amber to red based on thresholds.
+
+Charts use bucketed SQL aggregation (not raw data) so they stay fast even at the 30-day range.
 
 ### Jobs
 
@@ -82,6 +86,7 @@ A detailed per-queue breakdown:
 - Summary cards at the top — total enqueued, average duration, failed, discarded
 - A table showing each queue with columns for enqueued, avg duration, failed, retried, and discarded
 - Rows with failures get a subtle red background so they stand out
+- All counts scoped to the selected date range
 
 ### Cache
 
@@ -99,6 +104,7 @@ Exceptions grouped by class for faster triage:
 - Each exception class shows occurrence count and "last seen" time
 - Up to 5 recent messages displayed per group
 - Resolved status shown if solid_errors supports it
+- Scoped to the selected date range
 
 ## Storage Adapters
 
