@@ -31,6 +31,15 @@ gem "rails_orbit"
 ```bash
 bundle install
 bin/rails generate rails_orbit:install
+```
+
+The generator creates an initializer, a migration, and mounts the engine route. What happens next depends on your storage adapter:
+
+**SQLite (default):** The table is created automatically when the app boots. No migration needed — Orbit uses its own `db/rails_orbit.sqlite3` file, separate from your app's database.
+
+**Host database or external:** Run the migration so the table lands in your primary database:
+
+```bash
 bin/rails db:migrate
 ```
 
@@ -42,6 +51,13 @@ export ORBIT_PASSWORD=secret
 ```
 
 Visit `/orbit` in your browser. That is it.
+
+### Useful Commands
+
+```bash
+bin/rails rails_orbit:setup   # manually create the metrics table
+bin/rails rails_orbit:status  # show config, adapter, table status, metric count
+```
 
 ## Dashboard
 

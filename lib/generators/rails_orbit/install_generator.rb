@@ -17,7 +17,7 @@ module RailsOrbit
       def copy_migrations
         migration_template(
           "create_orbit_metrics.rb.erb",
-          "db/migrate/create_orbit_metrics.rb"
+          "db/migrate/create_rails_orbit_metrics.rb"
         )
       end
 
@@ -28,12 +28,25 @@ module RailsOrbit
       def print_next_steps
         say "\n"
         say "rails_orbit installed!", :green
+        say ""
         say "Next steps:"
-        say "  1. Run:  bin/rails db:migrate"
-        say "  2. Edit: config/initializers/rails_orbit.rb"
-        say "  3. Set:  ORBIT_USER and ORBIT_PASSWORD in your environment"
-        say "  4. Visit /orbit in your browser"
-        say "\n"
+        say ""
+        say "  For :host_db or :external adapters:"
+        say "    bin/rails db:migrate"
+        say ""
+        say "  For :sqlite adapter (default):"
+        say "    The table is created automatically on first boot."
+        say "    Or run manually: bin/rails rails_orbit:setup"
+        say ""
+        say "  Then:"
+        say "    1. Edit config/initializers/rails_orbit.rb"
+        say "    2. Set ORBIT_USER and ORBIT_PASSWORD in your environment"
+        say "    3. Visit /orbit in your browser"
+        say ""
+        say "  Useful commands:"
+        say "    bin/rails rails_orbit:setup   — create the metrics table"
+        say "    bin/rails rails_orbit:status  — check config and table status"
+        say ""
         say "If you are deploying to Heroku or another ephemeral platform:", :yellow
         say "  Set config.storage_adapter = :host_db in the initializer.", :yellow
       end
