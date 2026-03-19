@@ -14,23 +14,25 @@ module RailsOrbit
       @since     = range_cfg[:minutes].minutes.ago
       bucket     = range_cfg[:bucket_minutes]
 
-      @enqueued_count    = sum_since("solid_queue.enqueued")
-      @failed_jobs_count = sum_since("solid_queue.failed")
-      @retried_count     = sum_since("solid_queue.retried")
-      @discarded_count   = sum_since("solid_queue.discarded")
+      sums = aggregate_sums
+      @enqueued_count    = sums["solid_queue.enqueued"].to_i
+      @failed_jobs_count = sums["solid_queue.failed"].to_i
+      @retried_count     = sums["solid_queue.retried"].to_i
+      @discarded_count   = sums["solid_queue.discarded"].to_i
       @avg_duration      = scoped_metrics.for_key("solid_queue.performed_ms").average(:value)&.round(1) || 0
 
-      @cache_hits   = sum_since("solid_cache.read_hit")
-      @cache_misses = sum_since("solid_cache.read_miss")
-      @cache_writes = sum_since("solid_cache.write")
+      @cache_hits   = sums["solid_cache.read_hit"].to_i
+      @cache_misses = sums["solid_cache.read_miss"].to_i
+      @cache_writes = sums["solid_cache.write"].to_i
       @cache_hit_rate = compute_rate(@cache_hits, @cache_misses)
 
-      @error_count = sum_since("solid_errors.recorded")
+      @error_count = sums["solid_errors.recorded"].to_i
 
-      @enqueued_delta = compute_delta("solid_queue.enqueued")
-      @failed_delta   = compute_delta("solid_queue.failed")
-      @error_delta    = compute_delta("solid_errors.recorded")
-      @cache_delta    = compute_hit_rate_delta
+      delta_window = delta_window_for(@range_key)
+      @enqueued_delta = compute_delta("solid_queue.enqueued", delta_window)
+      @failed_delta   = compute_delta("solid_queue.failed", delta_window)
+      @error_delta    = compute_delta("solid_errors.recorded", delta_window)
+      @cache_delta    = compute_hit_rate_delta(delta_window)
 
       @job_chart   = bucketed_series("solid_queue.performed_ms", bucket, :avg)
       @cache_chart = bucketed_hit_rate_series(bucket)
@@ -41,9 +43,10 @@ module RailsOrbit
       @range_key = valid_range(params[:range])
       @since     = RANGES[@range_key][:minutes].minutes.ago
 
-      @total_enqueued  = sum_since("solid_queue.enqueued")
-      @total_failed    = sum_since("solid_queue.failed")
-      @total_discarded = sum_since("solid_queue.discarded")
+      sums = aggregate_sums
+      @total_enqueued  = sums["solid_queue.enqueued"].to_i
+      @total_failed    = sums["solid_queue.failed"].to_i
+      @total_discarded = sums["solid_queue.discarded"].to_i
       @avg_duration    = scoped_metrics.for_key("solid_queue.performed_ms").average(:value)&.round(1) || 0
 
       @by_queue = scoped_metrics
@@ -59,13 +62,14 @@ module RailsOrbit
       @range_key = valid_range(params[:range])
       @since     = RANGES[@range_key][:minutes].minutes.ago
 
-      @hits      = sum_since("solid_cache.read_hit")
-      @misses    = sum_since("solid_cache.read_miss")
+      sums = aggregate_sums
+      @hits      = sums["solid_cache.read_hit"].to_i
+      @misses    = sums["solid_cache.read_miss"].to_i
       @reads     = @hits + @misses
       @hit_rate  = compute_rate(@hits, @misses)
-      @writes    = sum_since("solid_cache.write")
-      @deletes   = sum_since("solid_cache.delete")
-      @fetch_hit = sum_since("solid_cache.fetch_hit")
+      @writes    = sums["solid_cache.write"].to_i
+      @deletes   = sums["solid_cache.delete"].to_i
+      @fetch_hit = sums["solid_cache.fetch_hit"].to_i
     end
 
     def errors
@@ -99,8 +103,8 @@ module RailsOrbit
       Metric.where(recorded_at: @since..)
     end
 
-    def sum_since(key)
-      scoped_metrics.for_key(key).sum(:value).to_i
+    def aggregate_sums
+      scoped_metrics.group(:key).sum(:value)
     end
 
     def compute_rate(hits, misses)
@@ -108,10 +112,21 @@ module RailsOrbit
       total.zero? ? 0.0 : ((hits.to_f / total) * 100).round(1)
     end
 
-    def compute_delta(key)
-      now       = Time.current
-      current   = Metric.where(recorded_at: (now - 1.hour)..now).for_key(key).sum(:value).to_i
-      previous  = Metric.where(recorded_at: (now - 2.hours)..(now - 1.hour)).for_key(key).sum(:value).to_i
+    def delta_window_for(range_key)
+      case range_key
+      when "1h"  then 15.minutes
+      when "6h"  then 1.hour
+      when "24h" then 1.hour
+      when "7d"  then 6.hours
+      when "30d" then 1.day
+      else 1.hour
+      end
+    end
+
+    def compute_delta(key, window = 1.hour)
+      now      = Time.current
+      current  = Metric.where(recorded_at: (now - window)..now).for_key(key).sum(:value).to_i
+      previous = Metric.where(recorded_at: (now - window * 2)..(now - window)).for_key(key).sum(:value).to_i
       return { value: 0, direction: :flat } if previous.zero? && current.zero?
       return { value: 100, direction: :up } if previous.zero?
 
@@ -120,12 +135,12 @@ module RailsOrbit
       { value: pct.abs, direction: direction }
     end
 
-    def compute_hit_rate_delta
+    def compute_hit_rate_delta(window = 1.hour)
       now = Time.current
-      cur_hits   = Metric.where(recorded_at: (now - 1.hour)..now).for_key("solid_cache.read_hit").sum(:value).to_f
-      cur_misses = Metric.where(recorded_at: (now - 1.hour)..now).for_key("solid_cache.read_miss").sum(:value).to_f
-      prev_hits   = Metric.where(recorded_at: (now - 2.hours)..(now - 1.hour)).for_key("solid_cache.read_hit").sum(:value).to_f
-      prev_misses = Metric.where(recorded_at: (now - 2.hours)..(now - 1.hour)).for_key("solid_cache.read_miss").sum(:value).to_f
+      cur_hits   = Metric.where(recorded_at: (now - window)..now).for_key("solid_cache.read_hit").sum(:value).to_f
+      cur_misses = Metric.where(recorded_at: (now - window)..now).for_key("solid_cache.read_miss").sum(:value).to_f
+      prev_hits   = Metric.where(recorded_at: (now - window * 2)..(now - window)).for_key("solid_cache.read_hit").sum(:value).to_f
+      prev_misses = Metric.where(recorded_at: (now - window * 2)..(now - window)).for_key("solid_cache.read_miss").sum(:value).to_f
 
       cur_rate  = (cur_hits + cur_misses).zero? ? 0.0 : (cur_hits / (cur_hits + cur_misses) * 100)
       prev_rate = (prev_hits + prev_misses).zero? ? 0.0 : (prev_hits / (prev_hits + prev_misses) * 100)
@@ -135,36 +150,41 @@ module RailsOrbit
     end
 
     def bucketed_series(key, bucket_minutes, agg)
+      conn    = Metric.connection
       table   = Metric.table_name
       seconds = bucket_minutes * 60
       agg_fn  = agg == :avg ? "AVG" : "SUM"
       bucket  = bucket_sql(seconds)
-      since   = @since.utc.strftime("%Y-%m-%d %H:%M:%S")
+      q_key   = conn.quote(key)
+      q_since = conn.quote(@since.utc.strftime("%Y-%m-%d %H:%M:%S"))
 
       sql = "SELECT #{bucket} AS bucket, #{agg_fn}(value) AS val " \
-            "FROM #{table} " \
-            "WHERE key = '#{key}' AND recorded_at >= '#{since}' " \
+            "FROM #{conn.quote_table_name(table)} " \
+            "WHERE key = #{q_key} AND recorded_at >= #{q_since} " \
             "GROUP BY bucket ORDER BY bucket"
 
-      Metric.connection.select_all(sql).rows.map do |row|
+      conn.select_all(sql).rows.map do |row|
         { t: row[0].to_s, v: row[1].to_f.round(1) }
       end
     end
 
     def bucketed_hit_rate_series(bucket_minutes)
+      conn    = Metric.connection
       table   = Metric.table_name
       seconds = bucket_minutes * 60
       bucket  = bucket_sql(seconds)
-      since   = @since.utc.strftime("%Y-%m-%d %H:%M:%S")
+      q_since = conn.quote(@since.utc.strftime("%Y-%m-%d %H:%M:%S"))
+      q_hit   = conn.quote("solid_cache.read_hit")
+      q_miss  = conn.quote("solid_cache.read_miss")
 
       sql = "SELECT #{bucket} AS bucket, " \
-            "SUM(CASE WHEN key = 'solid_cache.read_hit' THEN value ELSE 0 END) AS hits, " \
-            "SUM(CASE WHEN key = 'solid_cache.read_miss' THEN value ELSE 0 END) AS misses " \
-            "FROM #{table} " \
-            "WHERE key IN ('solid_cache.read_hit', 'solid_cache.read_miss') AND recorded_at >= '#{since}' " \
+            "SUM(CASE WHEN key = #{q_hit} THEN value ELSE 0 END) AS hits, " \
+            "SUM(CASE WHEN key = #{q_miss} THEN value ELSE 0 END) AS misses " \
+            "FROM #{conn.quote_table_name(table)} " \
+            "WHERE key IN (#{q_hit}, #{q_miss}) AND recorded_at >= #{q_since} " \
             "GROUP BY bucket ORDER BY bucket"
 
-      Metric.connection.select_all(sql).rows.map do |row|
+      conn.select_all(sql).rows.map do |row|
         h = row[1].to_f
         m = row[2].to_f
         total = h + m

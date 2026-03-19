@@ -57,9 +57,28 @@ RSpec.describe RailsOrbit::Configuration do
     end
 
     it "default auth block calls authenticate_or_request_with_http_basic" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("ORBIT_USER").and_return(nil)
+      allow(ENV).to receive(:[]).with("ORBIT_PASSWORD").and_return(nil)
       controller = double("controller")
       expect(controller).to receive(:authenticate_or_request_with_http_basic).with("Orbit")
       config.auth_block.call(controller)
+    end
+  end
+
+  describe "#validate! with kamal" do
+    it "raises when kamal_enabled but no ssh key path" do
+      config.kamal_enabled = true
+      config.kamal_ssh_key_path = nil
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("ORBIT_SSH_KEY_PATH").and_return(nil)
+      expect { config.validate! }.to raise_error(ArgumentError, /kamal_ssh_key_path/)
+    end
+
+    it "passes when kamal_enabled with ssh key path" do
+      config.kamal_enabled = true
+      config.kamal_ssh_key_path = "/path/to/key"
+      expect { config.validate! }.not_to raise_error
     end
   end
 

@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.files = Dir[
-    "app/**/*", "config/**/*",
+    "app/**/*", "config/**/*", "db/**/*",
     "lib/**/*", "public/**/*",
     "LICENSE.txt", "README.md", "CHANGELOG.md"
   ]

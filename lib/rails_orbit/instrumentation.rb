@@ -15,6 +15,7 @@ module RailsOrbit
 
     class << self
       def subscribe!
+        unsubscribe! if @subscriptions
         @subscriptions = SUBSCRIPTIONS.map do |event_name|
           ActiveSupport::Notifications.subscribe(event_name) do |event|
             handle(event)
@@ -27,6 +28,10 @@ module RailsOrbit
           ActiveSupport::Notifications.unsubscribe(sub)
         end
         @subscriptions = nil
+      end
+
+      def subscribed?
+        @subscriptions.present?
       end
 
       def handle(event)

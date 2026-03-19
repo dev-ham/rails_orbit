@@ -3,16 +3,17 @@ module RailsOrbit
     def index
       respond_to do |format|
         format.turbo_stream do
+          stats = fetch_all_stats
           render turbo_stream: [
             turbo_stream.update("orbit-queue-stats",
               partial: "rails_orbit/stream/queue_stats",
-              locals:  { data: queue_stats }),
+              locals:  { data: stats[:queue] }),
             turbo_stream.update("orbit-cache-stats",
               partial: "rails_orbit/stream/cache_stats",
-              locals:  { data: cache_stats }),
+              locals:  { data: stats[:cache] }),
             turbo_stream.update("orbit-error-count",
               partial: "rails_orbit/stream/error_count",
-              locals:  { count: error_count }),
+              locals:  { count: stats[:errors] }),
           ]
         end
       end
@@ -20,29 +21,35 @@ module RailsOrbit
 
     private
 
-    def queue_stats
-      {
-        enqueued: Metric.recent(1).for_key("solid_queue.enqueued").sum(:value).to_i,
-        failed:   Metric.recent(1).for_key("solid_queue.failed").sum(:value).to_i,
-        retried:  Metric.recent(1).for_key("solid_queue.retried").sum(:value).to_i,
-        avg_ms:   Metric.recent(1).for_key("solid_queue.performed_ms").average(:value)&.round(1) || 0,
-      }
-    end
+    def fetch_all_stats
+      sums = Metric.recent(1).group(:key).pluck(:key, Arel.sql("SUM(value)"), Arel.sql("AVG(value)"))
 
-    def cache_stats
-      hits   = Metric.recent(1).for_key("solid_cache.read_hit").sum(:value).to_f
-      misses = Metric.recent(1).for_key("solid_cache.read_miss").sum(:value).to_f
+      by_key_sum = {}
+      by_key_avg = {}
+      sums.each do |key, total, avg|
+        by_key_sum[key] = total.to_f
+        by_key_avg[key] = avg.to_f
+      end
+
+      hits   = by_key_sum["solid_cache.read_hit"].to_f
+      misses = by_key_sum["solid_cache.read_miss"].to_f
       total  = hits + misses
-      {
-        hits:     hits.to_i,
-        misses:   misses.to_i,
-        writes:   Metric.recent(1).for_key("solid_cache.write").sum(:value).to_i,
-        hit_rate: total.zero? ? 0.0 : ((hits / total) * 100).round(1),
-      }
-    end
 
-    def error_count
-      Metric.recent(1).for_key("solid_errors.recorded").sum(:value).to_i
+      {
+        queue: {
+          enqueued: by_key_sum["solid_queue.enqueued"].to_i,
+          failed:   by_key_sum["solid_queue.failed"].to_i,
+          retried:  by_key_sum["solid_queue.retried"].to_i,
+          avg_ms:   by_key_avg["solid_queue.performed_ms"]&.round(1) || 0,
+        },
+        cache: {
+          hits:     hits.to_i,
+          misses:   misses.to_i,
+          writes:   by_key_sum["solid_cache.write"].to_i,
+          hit_rate: total.zero? ? 0.0 : ((hits / total) * 100).round(1),
+        },
+        errors: by_key_sum["solid_errors.recorded"].to_i,
+      }
     end
   end
 end

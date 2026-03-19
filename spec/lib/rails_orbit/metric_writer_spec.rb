@@ -19,7 +19,7 @@ RSpec.describe RailsOrbit::MetricWriter do
     end
 
     it "does not raise on DB errors" do
-      allow(RailsOrbit::Metric).to receive(:record).and_raise(ActiveRecord::StatementInvalid, "boom")
+      allow(RailsOrbit::Metric).to receive(:insert).and_raise(ActiveRecord::StatementInvalid, "boom")
 
       expect {
         described_class.write(key: "fail", value: 1)

@@ -33,15 +33,33 @@ module RailsOrbit
       if @storage_adapter == :external && @storage_url.blank?
         raise ArgumentError, "[rails_orbit] storage_adapter is :external but storage_url is not set."
       end
+      if @kamal_enabled && @kamal_ssh_key_path.nil? && ENV["ORBIT_SSH_KEY_PATH"].nil?
+        raise ArgumentError, "[rails_orbit] kamal_enabled is true but kamal_ssh_key_path is not set. " \
+                             "Set it in the initializer or via ORBIT_SSH_KEY_PATH env var."
+      end
     end
 
     private
 
     def default_auth_block
       ->(controller) {
-        controller.authenticate_or_request_with_http_basic("Orbit") do |name, password|
-          ActiveSupport::SecurityUtils.secure_compare(name, ENV.fetch("ORBIT_USER", "orbit")) &
-            ActiveSupport::SecurityUtils.secure_compare(password, ENV.fetch("ORBIT_PASSWORD", "changeme"))
+        user     = ENV["ORBIT_USER"]
+        password = ENV["ORBIT_PASSWORD"]
+
+        if user.nil? || password.nil?
+          if Rails.env.production?
+            Rails.logger.error("[rails_orbit] ORBIT_USER and ORBIT_PASSWORD must be set in production. Dashboard access denied.")
+            controller.head(:forbidden)
+            return
+          else
+            user     ||= "orbit"
+            password ||= "orbit"
+          end
+        end
+
+        controller.authenticate_or_request_with_http_basic("Orbit") do |name, pwd|
+          ActiveSupport::SecurityUtils.secure_compare(name, user) &
+            ActiveSupport::SecurityUtils.secure_compare(pwd, password)
         end
       }
     end

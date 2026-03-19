@@ -11,7 +11,12 @@ module RailsOrbit
 
       def write(key:, value:, dimension: nil)
         executor.post do
-          RailsOrbit::Metric.record(key: key, value: value, dimension: dimension)
+          RailsOrbit::ApplicationRecord.connection_pool.with_connection do
+            RailsOrbit::Metric.insert(
+              { key: key, value: value, dimension: dimension, recorded_at: Time.current },
+              returning: false
+            )
+          end
         rescue => e
           Rails.logger.error("[rails_orbit] MetricWriter failed: #{e.message}")
         end
