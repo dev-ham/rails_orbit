@@ -1,13 +1,12 @@
 namespace :rails_orbit do
   desc "Create the rails_orbit_metrics table in the configured database"
   task setup: :environment do
-    conn    = RailsOrbit::ApplicationRecord.connection
-    table   = RailsOrbit::Metric.table_name
-    adapter = conn.adapter_name.downcase
-    config  = RailsOrbit.configuration
+    conn   = RailsOrbit::ApplicationRecord.connection
+    table  = RailsOrbit::Metric.table_name
+    config = RailsOrbit.configuration
 
     puts "[rails_orbit] Storage adapter: #{config.storage_adapter}"
-    puts "[rails_orbit] Database adapter: #{adapter}"
+    puts "[rails_orbit] Database adapter: #{conn.adapter_name.downcase}"
     puts "[rails_orbit] Table name: #{table}"
 
     if conn.table_exists?(table)
@@ -15,45 +14,7 @@ namespace :rails_orbit do
       next
     end
 
-    if adapter.include?("sqlite")
-      db_path = conn.pool.db_config.configuration_hash[:database]
-      puts "[rails_orbit] SQLite database: #{db_path}"
-
-      conn.execute <<~SQL
-        CREATE TABLE IF NOT EXISTS #{table} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          key VARCHAR(255) NOT NULL,
-          value FLOAT NOT NULL,
-          dimension VARCHAR(255),
-          recorded_at DATETIME NOT NULL
-        )
-      SQL
-    elsif adapter.include?("postgres")
-      conn.execute <<~SQL
-        CREATE TABLE IF NOT EXISTS #{table} (
-          id BIGSERIAL PRIMARY KEY,
-          key VARCHAR(255) NOT NULL,
-          value DOUBLE PRECISION NOT NULL,
-          dimension VARCHAR(255),
-          recorded_at TIMESTAMP(6) NOT NULL
-        )
-      SQL
-    else
-      conn.execute <<~SQL
-        CREATE TABLE IF NOT EXISTS #{table} (
-          id BIGINT AUTO_INCREMENT PRIMARY KEY,
-          key VARCHAR(255) NOT NULL,
-          value DOUBLE NOT NULL,
-          dimension VARCHAR(255),
-          recorded_at DATETIME(6) NOT NULL
-        )
-      SQL
-    end
-
-    conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_key_rec ON #{table} (key, recorded_at)"
-    conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_rec ON #{table} (recorded_at)"
-    conn.execute "CREATE INDEX IF NOT EXISTS idx_#{table}_cover ON #{table} (key, recorded_at, value)"
-
+    RailsOrbit::DatabaseSetup.new(conn).run!
     puts "[rails_orbit] Created '#{table}' table with indexes."
   end
 
@@ -73,9 +34,9 @@ namespace :rails_orbit do
     puts "  Table exists:     #{conn.table_exists?(table)}"
 
     if conn.table_exists?(table)
-      count = conn.select_value("SELECT COUNT(*) FROM #{table}")
-      oldest = conn.select_value("SELECT MIN(recorded_at) FROM #{table}")
-      newest = conn.select_value("SELECT MAX(recorded_at) FROM #{table}")
+      count = conn.select_value("SELECT COUNT(*) FROM #{conn.quote_table_name(table)}")
+      oldest = conn.select_value("SELECT MIN(recorded_at) FROM #{conn.quote_table_name(table)}")
+      newest = conn.select_value("SELECT MAX(recorded_at) FROM #{conn.quote_table_name(table)}")
       puts "  Metric count:     #{count}"
       puts "  Oldest metric:    #{oldest || 'none'}"
       puts "  Newest metric:    #{newest || 'none'}"
@@ -84,8 +45,8 @@ namespace :rails_orbit do
     if config.storage_adapter == :sqlite
       db_path = conn.pool.db_config.configuration_hash[:database]
       puts "  SQLite path:      #{db_path}"
-      if File.exist?(db_path)
-        size_kb = (File.size(db_path) / 1024.0).round(1)
+      if File.exist?(db_path.to_s)
+        size_kb = (File.size(db_path.to_s) / 1024.0).round(1)
         puts "  SQLite size:      #{size_kb} KB"
       end
     end

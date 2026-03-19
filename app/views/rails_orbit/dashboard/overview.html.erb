@@ -2,11 +2,7 @@
   <div class="orbit-page-header">
     <h1 class="orbit-page__title">Overview</h1>
     <div class="orbit-page-header__right">
-      <div class="orbit-range-picker">
-        <% RailsOrbit::DashboardController::RANGES.each do |key, cfg| %>
-          <%= link_to cfg[:label], rails_orbit.root_path(range: key), class: "orbit-range-picker__btn #{'orbit-range-picker__btn--active' if @range_key == key}" %>
-        <% end %>
-      </div>
+      <%= render "rails_orbit/shared/range_picker" %>
       <div class="orbit-updated" id="orbit-last-updated" data-time="<%= Time.current.iso8601 %>">
         Updated just now
       </div>
@@ -14,57 +10,36 @@
   </div>
 
   <div class="orbit-grid orbit-grid--3">
-    <div class="orbit-card orbit-card--bordered orbit-card--border-primary">
-      <div class="orbit-card__header">
-        <div class="orbit-card__label">
-          <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-          Jobs (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
-        </div>
-        <%= render "rails_orbit/shared/delta", delta: @enqueued_delta %>
-      </div>
-      <div class="orbit-card__value" id="orbit-queue-stats">
-        <%= render "rails_orbit/stream/queue_stats", data: { enqueued: @enqueued_count, failed: @failed_jobs_count, retried: @retried_count, avg_ms: @avg_duration } %>
-      </div>
-      <div class="orbit-card__footer">
-        <span class="orbit-card__detail"><%= @discarded_count %> discarded</span>
-        <span class="orbit-card__detail"><%= @avg_duration %>ms avg</span>
-      </div>
-    </div>
+    <%= render "rails_orbit/dashboard/overview_card",
+      border: "primary",
+      icon: :jobs,
+      label: "Jobs (#{range_label})",
+      delta: @enqueued_delta,
+      target_id: "orbit-queue-stats",
+      partial: "rails_orbit/stream/queue_stats",
+      locals: { data: { enqueued: @enqueued_count, failed: @failed_jobs_count, retried: @retried_count, avg_ms: @avg_duration } },
+      footer_items: ["#{@discarded_count} discarded", "#{@avg_duration}ms avg"] %>
 
-    <div class="orbit-card orbit-card--bordered orbit-card--border-<%= @cache_hit_rate >= 80 ? 'success' : (@cache_hit_rate >= 50 ? 'warning' : 'danger') %>">
-      <div class="orbit-card__header">
-        <div class="orbit-card__label">
-          <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
-          Cache (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
-        </div>
-        <%= render "rails_orbit/shared/delta", delta: @cache_delta %>
-      </div>
-      <div class="orbit-card__value" id="orbit-cache-stats">
-        <%= render "rails_orbit/stream/cache_stats", data: { hit_rate: @cache_hit_rate, hits: @cache_hits, misses: @cache_misses, writes: @cache_writes } %>
-      </div>
-      <div class="orbit-card__footer">
-        <span class="orbit-card__detail"><%= @cache_hits %> hits</span>
-        <span class="orbit-card__detail"><%= @cache_misses %> misses</span>
-        <span class="orbit-card__detail"><%= @cache_writes %> writes</span>
-      </div>
-    </div>
+    <%= render "rails_orbit/dashboard/overview_card",
+      border: cache_severity(@cache_hit_rate),
+      icon: :cache,
+      label: "Cache (#{range_label})",
+      delta: @cache_delta,
+      target_id: "orbit-cache-stats",
+      partial: "rails_orbit/stream/cache_stats",
+      locals: { data: { hit_rate: @cache_hit_rate, hits: @cache_hits, misses: @cache_misses, writes: @cache_writes } },
+      footer_items: ["#{@cache_hits} hits", "#{@cache_misses} misses", "#{@cache_writes} writes"] %>
 
-    <div class="orbit-card orbit-card--bordered orbit-card--border-<%= @error_count.zero? ? 'success' : (@error_count < 10 ? 'warning' : 'danger') %>">
-      <div class="orbit-card__header">
-        <div class="orbit-card__label">
-          <svg class="orbit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Errors (<%= RailsOrbit::DashboardController::RANGES[@range_key][:label] %>)
-        </div>
-        <%= render "rails_orbit/shared/delta", delta: @error_delta %>
-      </div>
-      <div class="orbit-card__value <%= 'orbit-card__value--danger' unless @error_count.zero? %>" id="orbit-error-count">
-        <%= render "rails_orbit/stream/error_count", count: @error_count %>
-      </div>
-      <div class="orbit-card__footer">
-        <span class="orbit-card__detail"><%= @failed_jobs_count %> failed jobs</span>
-        <span class="orbit-card__detail"><%= @retried_count %> retried</span>
-      </div>
-    </div>
+    <%= render "rails_orbit/dashboard/overview_card",
+      border: severity_class(@error_count),
+      icon: :errors,
+      label: "Errors (#{range_label})",
+      delta: @error_delta,
+      target_id: "orbit-error-count",
+      partial: "rails_orbit/stream/error_count",
+      locals: { count: @error_count },
+      value_class: (@error_count.zero? ? "" : "orbit-card__value--danger"),
+      footer_items: ["#{@failed_jobs_count} failed jobs", "#{@retried_count} retried"] %>
   </div>
 
   <div class="orbit-grid orbit-grid--1">

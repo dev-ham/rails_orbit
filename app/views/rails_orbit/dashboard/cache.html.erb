@@ -4,8 +4,6 @@
     <%= render "rails_orbit/shared/range_picker" %>
   </div>
 
-  <% range_label = RailsOrbit::DashboardController::RANGES[@range_key][:label] %>
-
   <div class="orbit-grid orbit-grid--3">
     <div class="orbit-card orbit-card--compact">
       <div class="orbit-card__label">Total Reads (<%= range_label %>)</div>

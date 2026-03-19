@@ -1,10 +1,11 @@
 module RailsOrbit
   module Kamal
     class StatsCollector
+      include SSHKit::DSL
+
       def collect(host:, user:, ssh_key_path:)
         require "sshkit"
         require "sshkit/dsl"
-        self.class.include SSHKit::DSL unless self.class.ancestors.include?(SSHKit::DSL)
 
         output = nil
         on(SSHKit::Host.new("#{user}@#{host}")) do

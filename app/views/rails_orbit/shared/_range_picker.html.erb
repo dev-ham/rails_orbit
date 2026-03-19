@@ -1,5 +1,5 @@
 <div class="orbit-range-picker">
-  <% RailsOrbit::DashboardController::RANGES.each do |key, cfg| %>
+  <% range_options.each do |key, cfg| %>
     <%= link_to cfg[:label], url_for(range: key), class: "orbit-range-picker__btn #{'orbit-range-picker__btn--active' if @range_key == key}" %>
   <% end %>
 </div>

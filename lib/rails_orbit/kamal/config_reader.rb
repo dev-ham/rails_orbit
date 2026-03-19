@@ -3,20 +3,29 @@ module RailsOrbit
     class ConfigReader
       DEPLOY_YML = "config/deploy.yml"
 
-      def self.load
-        path = Rails.root.join(DEPLOY_YML)
-        raise "[rails_orbit] Kamal config not found at #{path}" unless path.exist?
-        YAML.safe_load_file(path, permitted_classes: [Symbol])
-      end
+      class << self
+        def load
+          @config ||= begin
+            path = Rails.root.join(DEPLOY_YML)
+            raise "Kamal config not found at #{path}" unless path.exist?
+            YAML.safe_load_file(path, permitted_classes: [Symbol])
+          end
+        end
 
-      def self.servers
-        config = load
-        Array(config.dig("servers", "web")) +
-          Array(config.dig("servers", "workers"))
-      end
+        def reload!
+          @config = nil
+          load
+        end
 
-      def self.ssh_user
-        load.dig("ssh", "user") || "root"
+        def servers
+          config = load
+          Array(config.dig("servers", "web")) +
+            Array(config.dig("servers", "workers"))
+        end
+
+        def ssh_user
+          load.dig("ssh", "user") || "root"
+        end
       end
     end
   end

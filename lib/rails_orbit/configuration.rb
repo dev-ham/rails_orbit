@@ -5,6 +5,7 @@ module RailsOrbit
     attr_accessor :storage_adapter, :storage_url, :retention_days,
                   :kamal_enabled, :kamal_ssh_key_path,
                   :dashboard_title, :poll_interval
+    attr_reader   :auth_block
 
     def initialize
       @storage_adapter    = :sqlite
@@ -21,25 +22,30 @@ module RailsOrbit
       @auth_block = block
     end
 
-    def auth_block
-      @auth_block
-    end
-
     def validate!
-      unless VALID_ADAPTERS.include?(@storage_adapter)
-        raise ArgumentError, "[rails_orbit] Unknown storage_adapter: #{@storage_adapter.inspect}. " \
-                             "Valid options: #{VALID_ADAPTERS.join(', ')}"
-      end
-      if @storage_adapter == :external && @storage_url.blank?
-        raise ArgumentError, "[rails_orbit] storage_adapter is :external but storage_url is not set."
-      end
-      if @kamal_enabled && @kamal_ssh_key_path.nil? && ENV["ORBIT_SSH_KEY_PATH"].nil?
-        raise ArgumentError, "[rails_orbit] kamal_enabled is true but kamal_ssh_key_path is not set. " \
-                             "Set it in the initializer or via ORBIT_SSH_KEY_PATH env var."
-      end
+      validate_storage_adapter!
+      validate_external_url!
+      validate_kamal_ssh_key!
     end
 
     private
+
+    def validate_storage_adapter!
+      return if VALID_ADAPTERS.include?(@storage_adapter)
+      raise ArgumentError, "Unknown storage_adapter: #{@storage_adapter.inspect}. Valid options: #{VALID_ADAPTERS.join(', ')}"
+    end
+
+    def validate_external_url!
+      return unless @storage_adapter == :external && @storage_url.blank?
+      raise ArgumentError, "storage_adapter is :external but storage_url is not set."
+    end
+
+    def validate_kamal_ssh_key!
+      return unless @kamal_enabled
+      return if @kamal_ssh_key_path || ENV["ORBIT_SSH_KEY_PATH"]
+      raise ArgumentError, "kamal_enabled is true but kamal_ssh_key_path is not set. " \
+                           "Set it in the initializer or via ORBIT_SSH_KEY_PATH env var."
+    end
 
     def default_auth_block
       ->(controller) {

@@ -13,9 +13,7 @@ RSpec.describe RailsOrbit::Configuration do
     it "accepts valid adapters" do
       %i[sqlite host_db external].each do |adapter|
         config.storage_adapter = adapter
-        if adapter == :external
-          config.storage_url = "postgres://localhost/orbit"
-        end
+        config.storage_url = "postgres://localhost/orbit" if adapter == :external
         expect { config.validate! }.not_to raise_error
       end
     end
@@ -60,6 +58,7 @@ RSpec.describe RailsOrbit::Configuration do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("ORBIT_USER").and_return(nil)
       allow(ENV).to receive(:[]).with("ORBIT_PASSWORD").and_return(nil)
+
       controller = double("controller")
       expect(controller).to receive(:authenticate_or_request_with_http_basic).with("Orbit")
       config.auth_block.call(controller)
@@ -78,6 +77,14 @@ RSpec.describe RailsOrbit::Configuration do
     it "passes when kamal_enabled with ssh key path" do
       config.kamal_enabled = true
       config.kamal_ssh_key_path = "/path/to/key"
+      expect { config.validate! }.not_to raise_error
+    end
+
+    it "passes when kamal_enabled with env ssh key path" do
+      config.kamal_enabled = true
+      config.kamal_ssh_key_path = nil
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("ORBIT_SSH_KEY_PATH").and_return("/path/to/key")
       expect { config.validate! }.not_to raise_error
     end
   end

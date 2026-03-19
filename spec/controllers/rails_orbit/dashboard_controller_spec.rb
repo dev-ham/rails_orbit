@@ -56,14 +56,14 @@ RSpec.describe RailsOrbit::DashboardController, type: :request do
   end
 
   describe "authentication" do
+    before { RailsOrbit.reset_configuration! }
+
     it "returns 401 when using default auth without credentials" do
-      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
       get "/orbit"
       expect(response).to have_http_status(:unauthorized)
     end
 
     it "returns 200 when providing valid credentials in dev" do
-      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
       get "/orbit", headers: {
         "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("orbit", "orbit")
       }
@@ -74,7 +74,8 @@ RSpec.describe RailsOrbit::DashboardController, type: :request do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("ORBIT_USER").and_return("admin")
       allow(ENV).to receive(:[]).with("ORBIT_PASSWORD").and_return("secret123")
-      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
+
+      RailsOrbit.reset_configuration!
 
       get "/orbit", headers: {
         "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "secret123")
@@ -86,7 +87,8 @@ RSpec.describe RailsOrbit::DashboardController, type: :request do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("ORBIT_USER").and_return("admin")
       allow(ENV).to receive(:[]).with("ORBIT_PASSWORD").and_return("secret123")
-      RailsOrbit.configuration.instance_variable_set(:@auth_block, RailsOrbit::Configuration.new.auth_block)
+
+      RailsOrbit.reset_configuration!
 
       get "/orbit", headers: {
         "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "wrong")
@@ -121,23 +123,21 @@ RSpec.describe RailsOrbit::DashboardController, type: :request do
   end
 
   describe "security headers" do
+    before { get "/orbit" }
+
     it "sets X-Frame-Options to DENY" do
-      get "/orbit"
       expect(response.headers["X-Frame-Options"]).to eq("DENY")
     end
 
     it "sets X-Content-Type-Options to nosniff" do
-      get "/orbit"
       expect(response.headers["X-Content-Type-Options"]).to eq("nosniff")
     end
 
     it "sets Referrer-Policy" do
-      get "/orbit"
       expect(response.headers["Referrer-Policy"]).to eq("strict-origin-when-cross-origin")
     end
 
     it "sets Content-Security-Policy" do
-      get "/orbit"
       csp = response.headers["Content-Security-Policy"]
       expect(csp).to include("default-src 'none'")
       expect(csp).to include("script-src 'self'")

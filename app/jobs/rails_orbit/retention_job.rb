@@ -1,5 +1,5 @@
 module RailsOrbit
-  class RetentionJob < ActiveJob::Base
+  class RetentionJob < ApplicationJob
     queue_as :default
 
     BATCH_SIZE = 1_000

@@ -1,0 +1,17 @@
+<div class="orbit-card orbit-card--bordered orbit-card--border-<%= border %>">
+  <div class="orbit-card__header">
+    <div class="orbit-card__label">
+      <%= orbit_icon(icon) %>
+      <%= label %>
+    </div>
+    <%= render "rails_orbit/shared/delta", delta: delta %>
+  </div>
+  <div class="orbit-card__value <%= defined?(value_class) ? value_class : '' %>" id="<%= target_id %>">
+    <%= render partial: partial, locals: locals %>
+  </div>
+  <div class="orbit-card__footer">
+    <% footer_items.each do |item| %>
+      <span class="orbit-card__detail"><%= item %></span>
+    <% end %>
+  </div>
+</div>
