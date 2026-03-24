@@ -52,6 +52,12 @@ export ORBIT_PASSWORD=secret
 
 Visit `/orbit` in your browser. That is it.
 
+### Screenshot
+
+Overview with the range picker and interactive charts (example from a demo workload):
+
+![Orbit dashboard overview: jobs, cache, errors, time range, and charts](docs/images/demo_dashboard.png)
+
 ### Useful Commands
 
 ```bash
