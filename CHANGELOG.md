@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-03-24
 
 - Initial release
 - Multi-adapter storage (SQLite, host DB, external)

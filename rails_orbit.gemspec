@@ -13,10 +13,10 @@ Gem::Specification.new do |spec|
   spec.license     = "MIT"
 
   spec.metadata = {
-    "homepage_uri"    => spec.homepage,
-    "source_code_uri" => "https://github.com/dev-ham/rails_orbit",
-    "changelog_uri"   => "https://github.com/dev-ham/rails_orbit/blob/main/CHANGELOG.md",
-    "bug_tracker_uri" => "https://github.com/dev-ham/rails_orbit/issues",
+    "source_code_uri"       => "https://github.com/dev-ham/rails_orbit",
+    "changelog_uri"         => "https://github.com/dev-ham/rails_orbit/blob/main/CHANGELOG.md",
+    "bug_tracker_uri"       => "https://github.com/dev-ham/rails_orbit/issues",
+    "rubygems_mfa_required" => "true",
   }
 
   spec.required_ruby_version = ">= 3.1.0"
