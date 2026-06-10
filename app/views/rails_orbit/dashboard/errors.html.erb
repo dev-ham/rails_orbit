@@ -24,15 +24,47 @@
           <table class="orbit-table orbit-table--compact">
             <thead>
               <tr>
-                <th>Message</th>
+                <th>Message &amp; Location</th>
                 <th class="orbit-table__right">Occurred At</th>
               </tr>
             </thead>
             <tbody>
               <% group[:records].each do |error| %>
                 <tr>
-                  <td><%= truncate(error.message, length: 140) %></td>
-                  <td class="orbit-table__right orbit-table__mono"><%= error.created_at.strftime("%b %d %H:%M:%S") %></td>
+                  <td>
+                    <div class="orbit-error__message"><%= truncate(error[:message], length: 140) %></div>
+
+                    <% if (loc = error[:location]) %>
+                      <div class="orbit-error__location" title="<%= loc.to_s %>">
+                        <%= orbit_icon(:file, css_class: "orbit-error__location-icon") %>
+                        <% if loc.parsed? %>
+                          <span class="orbit-error__path"><%= loc.display_path %></span><span class="orbit-error__line">:<%= loc.line %></span><% if loc.method_name %>
+                            <span class="orbit-error__method">in <%= loc.method_name %></span><% end %>
+                        <% else %>
+                          <span class="orbit-error__path"><%= loc.raw %></span>
+                        <% end %>
+                      </div>
+                    <% end %>
+
+                    <% if error[:frames].any? %>
+                      <details class="orbit-trace">
+                        <summary class="orbit-trace__summary"><%= pluralize(error[:frames].size, "frame") %> · view traceback</summary>
+                        <ol class="orbit-trace__frames">
+                          <% error[:frames].each do |frame| %>
+                            <li class="orbit-trace__frame<%= " orbit-trace__frame--app" if frame.application? %>">
+                              <% if frame.parsed? %>
+                                <span class="orbit-trace__file"><%= frame.display_path %></span><span class="orbit-trace__line">:<%= frame.line %></span><% if frame.method_name %>
+                                  <span class="orbit-trace__method">in <%= frame.method_name %></span><% end %>
+                              <% else %>
+                                <span class="orbit-trace__file"><%= frame.raw %></span>
+                              <% end %>
+                            </li>
+                          <% end %>
+                        </ol>
+                      </details>
+                    <% end %>
+                  </td>
+                  <td class="orbit-table__right orbit-table__mono"><%= error[:created_at].strftime("%b %d %H:%M:%S") %></td>
                 </tr>
               <% end %>
             </tbody>

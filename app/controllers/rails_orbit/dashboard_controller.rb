@@ -1,5 +1,7 @@
 module RailsOrbit
   class DashboardController < ApplicationController
+    MAX_ERRORS_PER_GROUP = 5
+
     before_action :set_time_range
 
     def overview
@@ -57,24 +59,60 @@ module RailsOrbit
     end
 
     def errors
-      if defined?(SolidErrors)
-        all_errors = SolidErrors::Error.where(created_at: @time_range.since..).order(created_at: :desc).limit(200)
-        @grouped_errors = all_errors.group_by(&:exception_class).map do |klass, records|
-          {
-            exception_class: klass,
-            count:           records.size,
-            last_seen:       records.first.created_at,
-            resolved:        records.first.respond_to?(:resolved_at) && records.first.resolved_at.present?,
-            records:         records.first(5),
-          }
-        end.sort_by { |g| -g[:count] }
-      else
+      unless defined?(SolidErrors)
         @grouped_errors = []
         flash.now[:warning] = "solid_errors is not installed or not configured."
+        return
       end
+
+      all_errors = SolidErrors::Error
+        .where(created_at: @time_range.since..)
+        .order(created_at: :desc)
+        .limit(200)
+        .to_a
+
+      groups    = all_errors.group_by(&:exception_class)
+      displayed = groups.values.flat_map { |records| records.first(MAX_ERRORS_PER_GROUP) }
+      traces    = backtraces_for(displayed)
+
+      @grouped_errors = groups.map do |klass, records|
+        {
+          exception_class: klass,
+          count:           records.size,
+          last_seen:       records.first.created_at,
+          resolved:        records.first.respond_to?(:resolved_at) && records.first.resolved_at.present?,
+          records:         records.first(MAX_ERRORS_PER_GROUP).map { |error| present_error(error, traces[error.id]) },
+        }
+      end.sort_by { |g| -g[:count] }
     end
 
     private
+
+    def present_error(error, backtrace)
+      {
+        message:    error.message,
+        created_at: error.created_at,
+        location:   backtrace&.top_location,
+        frames:     backtrace&.frames || [],
+      }
+    end
+
+    # Parses the latest occurrence's backtrace for each displayed error, keyed
+    # by error id. Done in two bounded queries (one row per error) to avoid an
+    # N+1, and degrades gracefully if this solid_errors version has no
+    # occurrences table.
+    def backtraces_for(errors)
+      return {} if errors.empty? || !defined?(SolidErrors::Occurrence)
+
+      ids        = errors.map(&:id)
+      latest_ids = SolidErrors::Occurrence.where(error_id: ids).group(:error_id).maximum(:id).values
+      return {} if latest_ids.empty?
+
+      SolidErrors::Occurrence
+        .where(id: latest_ids)
+        .pluck(:error_id, :backtrace)
+        .to_h { |error_id, raw| [error_id, RailsOrbit::Backtrace.parse(raw)] }
+    end
 
     def set_time_range
       @time_range = TimeRange.new(params[:range])
