@@ -38,13 +38,12 @@ Use this checklist before publishing a new `rails_orbit` version to RubyGems.
 
 ---
 
-## Current Status (2026-03-24)
+## Current Status (2026-06-10)
 
-- [x] RSpec: passing (84 examples)
-- [x] Demo Cucumber: passing (55 scenarios)
-- [x] Gem builds successfully
+- [x] RSpec: passing (109 examples)
+- [x] Gem builds successfully (`rails_orbit-0.2.0.gem`)
 - [x] Gemspec metadata warning removed
 - [x] RubyGems MFA metadata added
-- [x] Changelog dated for `0.1.0`
-- [ ] Version bump decision for next publish (currently `0.1.0`)
+- [x] Version bumped to `0.2.0`
+- [x] Changelog dated for `0.2.0`
 - [ ] Final publish + tag
