@@ -483,8 +483,8 @@
   word-break: break-all;
 }
 .orbit-error__location-icon {
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.72rem;
+  height: 0.72rem;
   flex-shrink: 0;
   color: var(--orbit-text-muted);
 }
