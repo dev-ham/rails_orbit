@@ -109,6 +109,8 @@ Exceptions grouped by class for faster triage:
 
 - Each exception class shows occurrence count and "last seen" time
 - Up to 5 recent messages displayed per group
+- **Error location** — the exact `file:line in method` where each exception originated, taken from the first application frame of its most recent occurrence
+- **Full traceback** — expand any error to see the complete backtrace, with application frames highlighted and gem frames de-emphasized and shortened
 - Resolved status shown if solid_errors supports it
 - Scoped to the selected date range
 

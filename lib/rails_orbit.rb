@@ -1,6 +1,7 @@
 require "rails_orbit/version"
 require "rails_orbit/configuration"
 require "rails_orbit/time_range"
+require "rails_orbit/backtrace"
 require "rails_orbit/database_setup"
 require "rails_orbit/metric_writer"
 require "rails_orbit/instrumentation"
